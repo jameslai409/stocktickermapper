@@ -1,0 +1,44 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Stock Ticker Mapping App</title>
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name=‘viewport’ content=“width=device-width, initial-scale=1”>
+
+    </head>
+
+    <body>
+        <h1>Index</h1>
+
+        <!-- Section to populate database form CSV file -->
+        <form id="csvform" method="post" action="/reader">
+            Click the button to go to my CSV reader implementation:
+            <br />
+            <input type="submit" value="Go to Reader" name="reader" id="reader"></input>
+        </form>
+
+        <hr />
+
+        <!-- Form to query database based off of stock ticker or company name -->
+        <form id="queryform" method="POST" action="/find">
+            <p>Select a stock ticker OR a company name to query.</p>
+
+            <input type="radio" name="querytype" value="stockticker"></input>
+            Stock Ticker
+            <br />
+            <input type="radio" name="querytype" value="companyname"></input>
+            Company Name
+            <br />
+            <input type="text" name="query" id="query"></input>
+            <br />
+            <input type="submit"></input>
+        </form>
+
+
+    </body>
+
+
+</html>
