@@ -49,111 +49,37 @@ app.post('/populated', function(req, res) {
 });
 
 app.post('/find', function(req, res) {
-    res.writeHead(200, {'Content-Type':'text/html'});
+    var msg = "";
+    var queryObj = req.body;;
 
-    //gather post data into an object
-    var body = "";
-    req.on("data", function(data) {
-        body += data;
-    });
-    req.on("end", function() {
-        var userQuery = querystring.parse(body);
-        var queryObj = JSON.parse(JSON.stringify(userQuery));
+    var theQuery = new Object();
+    if (queryObj["querytype"] == "companyname") { //if they entered a company name
+        theQuery.Company = queryObj["query"];
+    }
+    else if (queryObj["querytype"] == "stockticker") {  //else if they ended a stock ticker name
+        theQuery.Ticker = queryObj["query"];
+    }
 
-        var theQuery = new Object();
-        if (queryObj["querytype"] == "companyname") { //if they entered a company name
-            theQuery.Company = queryObj["query"];
-        }
-        else if (queryObj["querytype"] == "stockticker") {  //else if they ended a stock ticker name
-            theQuery.Ticker = queryObj["query"];
+    //do the query on mongo
+    queryMongo(theQuery).then((queryResults) => {
+        for (var company of queryResults) {
+            msg += "<br / >Company: " + company["Company"] + ", Ticker: " + company["Ticker"] + "<br />";
         }
 
-        //do the query on mongo
-        queryMongo(theQuery).then((queryResults) => {
-            for (var company of queryResults) {
-                res.write("<br / >Company: " + company["Company"] + ", Ticker: " + company["Ticker"] + "<br />");
-            }
+        //write html to to back
+        msg += "<br />";
+        msg += "<form id='goback' method='POST' action='/'><input type='submit' value='Go back' name='goback' id='goback'></input></form>";
 
-            //write html to to back
-            res.write("<br />");
-            res.write("<form id='goback' method='POST' action='/'><input type='submit' value='Go back' name='goback' id='goback'></input></form>");
-        })
+        //RESPOND!
+        res.send(msg);
+    })
 
-    });
 
 });
-
-// const server = http.createServer(function (req, res) {
-
-//     res.writeHead(200, {'Content-Type':'text/html'});
-    
-//     if (req.url == "/find") {
-//         res.writeHead(200, {'Content-Type':'text/html'});
-
-//         //gather post data into an object
-//         var body = "";
-//         req.on("data", function(data) {
-//             body += data;
-//         });
-//         req.on("end", function() {
-//             var userQuery = querystring.parse(body);
-//             var queryObj = JSON.parse(JSON.stringify(userQuery));
-
-//             var theQuery = new Object();
-//             if (queryObj["querytype"] == "companyname") { //if they entered a company name
-//                 theQuery.Company = queryObj["query"];
-//             }
-//             else if (queryObj["querytype"] == "stockticker") {  //else if they ended a stock ticker name
-//                 theQuery.Ticker = queryObj["query"];
-//             }
-
-//             //do the query on mongo
-//             queryMongo(theQuery).then((queryResults) => {
-//                 for (var company of queryResults) {
-//                     res.write("<br / >Company: " + company["Company"] + ", Ticker: " + company["Ticker"] + "<br />");
-//                 }
-
-//                 //write html to to back
-//                 res.write("<br />");
-//                 res.write("<form id='goback' method='POST' action='/'><input type='submit' value='Go back' name='goback' id='goback'></input></form>");
-//             })
-
-//         });
-
-//         return;
-//     }
-
-//     //handle routing
-//     let file = "index.html";
-//     if (req.url == "/") {
-//         file = "index.html";
-//     }
-//     else if (req.url == "/reader") {
-//         file = "reader.html";
-//     }
-//     else if (req.url == "/populated") {
-//         file = "populated.html";
-//         loadDatabase();
-//     }
-
-//     fs.readFile(file, function(err, txt) {
-//         res.writeHead(200, {'Content-Type':'text/html'});
-//         res.write(txt);
-//         res.end();
-//     });
-
-// });
-
-//specify port server is listening to
-// server.listen(port, hostname, () => {
-//     console.log(`Server running at http://${hostname}:${port}/`);
-// });
 
 app.listen(port, function() {
     console.log('Our app is running on http://localhost:' + port);
 });
-
-//MONGO FUNCTIONS
 
 function loadDatabase() {
     var MongoClient = mongo.MongoClient;
