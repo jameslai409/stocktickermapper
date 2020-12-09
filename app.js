@@ -3,77 +3,154 @@ var fs = require('fs');
 var mongo = require('mongodb');
 var csv = require('csv-parser')
 var querystring = require("querystring");
-const { query } = require('express');
-// var express = require('express');
-// var app = express();
+var express = require('express');
+var app = express();
 
 const hostname = 'localhost';
-const port = 8080;
+var port = process.env.PORT || 8080;
+app.use(express.urlencoded({ extended: false }));
+app.set('view engine', 'html');
 
-// app.set('view engine', 'html');
-const server = http.createServer(function (req, res) {
-    res.writeHead(200, {'Content-Type':'text/html'});
-
-    if (req.url == "/find") {
-        res.writeHead(200, {'Content-Type':'text/html'});
-
-        //gather post data into an object
-        var body = "";
-        req.on("data", function(data) {
-            body += data;
-        });
-        req.on("end", function() {
-            var userQuery = querystring.parse(body);
-            var queryObj = JSON.parse(JSON.stringify(userQuery));
-
-            var theQuery = new Object();
-            if (queryObj["querytype"] == "companyname") { //if they entered a company name
-                theQuery.Company = queryObj["query"];
-            }
-            else if (queryObj["querytype"] == "stockticker") {  //else if they ended a stock ticker name
-                theQuery.Ticker = queryObj["query"];
-            }
-
-            //do the query on mongo
-            queryMongo(theQuery).then((queryResults) => {
-                for (var company of queryResults) {
-                    res.write("<br / >Company: " + company["Company"] + ", Ticker: " + company["Ticker"] + "<br />");
-                }
-
-                //write html to to back
-                res.write("<br />");
-                res.write("<form id='goback' method='POST' action='/'><input type='submit' value='Go back' name='goback' id='goback'></input></form>");
-            })
-
-        });
-
-        return;
-    }
-
-    //handle routing
-    let file = "index.html";
-    if (req.url == "/") {
-        file = "index.html";
-    }
-    else if (req.url == "/reader") {
-        file = "reader.html";
-    }
-    else if (req.url == "/populated") {
-        file = "populated.html";
-        loadDatabase();
-    }
-
+app.get('/', function(req, res) {
+    file = "index.html";
     fs.readFile(file, function(err, txt) {
         res.writeHead(200, {'Content-Type':'text/html'});
         res.write(txt);
         res.end();
     });
+});
+
+app.post('/', function(req, res) {
+    file = "index.html";
+    fs.readFile(file, function(err, txt) {
+        res.writeHead(200, {'Content-Type':'text/html'});
+        res.write(txt);
+        res.end();
+    });
+});
+
+app.post('/reader', function(req, res) {
+    file = "reader.html";
+    fs.readFile(file, function(err, txt) {
+        res.writeHead(200, {'Content-Type':'text/html'});
+        res.write(txt);
+        res.end();
+    });
+});
+
+app.post('/populated', function(req, res) {
+    file = "populated.html";
+    fs.readFile(file, function(err, txt) {
+        res.writeHead(200, {'Content-Type':'text/html'});
+        res.write(txt);
+        res.end();
+    });
+    loadDatabase();
+});
+
+app.post('/find', function(req, res) {
+    res.writeHead(200, {'Content-Type':'text/html'});
+
+    //gather post data into an object
+    var body = "";
+    req.on("data", function(data) {
+        body += data;
+    });
+    req.on("end", function() {
+        var userQuery = querystring.parse(body);
+        var queryObj = JSON.parse(JSON.stringify(userQuery));
+
+        var theQuery = new Object();
+        if (queryObj["querytype"] == "companyname") { //if they entered a company name
+            theQuery.Company = queryObj["query"];
+        }
+        else if (queryObj["querytype"] == "stockticker") {  //else if they ended a stock ticker name
+            theQuery.Ticker = queryObj["query"];
+        }
+
+        //do the query on mongo
+        queryMongo(theQuery).then((queryResults) => {
+            for (var company of queryResults) {
+                res.write("<br / >Company: " + company["Company"] + ", Ticker: " + company["Ticker"] + "<br />");
+            }
+
+            //write html to to back
+            res.write("<br />");
+            res.write("<form id='goback' method='POST' action='/'><input type='submit' value='Go back' name='goback' id='goback'></input></form>");
+        })
+
+    });
 
 });
 
+// const server = http.createServer(function (req, res) {
+
+//     res.writeHead(200, {'Content-Type':'text/html'});
+    
+//     if (req.url == "/find") {
+//         res.writeHead(200, {'Content-Type':'text/html'});
+
+//         //gather post data into an object
+//         var body = "";
+//         req.on("data", function(data) {
+//             body += data;
+//         });
+//         req.on("end", function() {
+//             var userQuery = querystring.parse(body);
+//             var queryObj = JSON.parse(JSON.stringify(userQuery));
+
+//             var theQuery = new Object();
+//             if (queryObj["querytype"] == "companyname") { //if they entered a company name
+//                 theQuery.Company = queryObj["query"];
+//             }
+//             else if (queryObj["querytype"] == "stockticker") {  //else if they ended a stock ticker name
+//                 theQuery.Ticker = queryObj["query"];
+//             }
+
+//             //do the query on mongo
+//             queryMongo(theQuery).then((queryResults) => {
+//                 for (var company of queryResults) {
+//                     res.write("<br / >Company: " + company["Company"] + ", Ticker: " + company["Ticker"] + "<br />");
+//                 }
+
+//                 //write html to to back
+//                 res.write("<br />");
+//                 res.write("<form id='goback' method='POST' action='/'><input type='submit' value='Go back' name='goback' id='goback'></input></form>");
+//             })
+
+//         });
+
+//         return;
+//     }
+
+//     //handle routing
+//     let file = "index.html";
+//     if (req.url == "/") {
+//         file = "index.html";
+//     }
+//     else if (req.url == "/reader") {
+//         file = "reader.html";
+//     }
+//     else if (req.url == "/populated") {
+//         file = "populated.html";
+//         loadDatabase();
+//     }
+
+//     fs.readFile(file, function(err, txt) {
+//         res.writeHead(200, {'Content-Type':'text/html'});
+//         res.write(txt);
+//         res.end();
+//     });
+
+// });
+
 //specify port server is listening to
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+// server.listen(port, hostname, () => {
+//     console.log(`Server running at http://${hostname}:${port}/`);
+// });
+
+app.listen(port, function() {
+    console.log('Our app is running on http://localhost:' + port);
 });
 
 //MONGO FUNCTIONS
